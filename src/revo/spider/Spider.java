@@ -16,6 +16,8 @@ import revo.gui.Linkchecker;
 public class Spider extends Thread {
 	public  final int MAX_FILESIZE = 100000;
 	public final long MAX_DEPTH = 10;
+	public final int MAX_WAITTIME = 60;
+	public final boolean DELETE_CONTENT = false;
 	private int depth = 0;
 	private Output output;
 	private String base;
@@ -65,7 +67,7 @@ public class Spider extends Thread {
 		while(this.depth <= MAX_DEPTH && this.sitesFound != this.sitesScanned) {
 			threadPool = new ThreadPoolExecutor(corePoolSize, 
 												maxPoolSize, 
-												keepAliveTime, 
+												this.MAX_WAITTIME, 
 												TimeUnit.SECONDS,  
 												new ArrayBlockingQueue<Runnable>(this.sitesFound-this.sitesScanned));
 			this.depth++;
@@ -74,7 +76,7 @@ public class Spider extends Thread {
 			
 			threadPool.shutdown();
 			try {
-				threadPool.awaitTermination(60, TimeUnit.MINUTES);
+				threadPool.awaitTermination(this.MAX_WAITTIME, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -119,6 +121,30 @@ public class Spider extends Thread {
 	
 	//find Links in Website
 	public void parseWebsite(Website site) {
+		
+		this.findLinks(site);
+		this.findCSSFiles(site);
+		this.findJavascript(site);
+		this.findImages(site);
+		
+		//delete Content
+		if(this.DELETE_CONTENT)
+			site.clearContent();
+	}
+	
+	private void findCSSFiles(Website site) {
+		
+	}
+	
+	private void findJavascript(Website site) {
+		
+	}
+	
+	private void findImages(Website site) {
+		
+	}
+	
+	private void findLinks(Website site) {
 		//find Links in Website
 	    Pattern pattern = Pattern.compile( "<a [^>]*?href=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)</a>" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
@@ -169,9 +195,6 @@ public class Spider extends Thread {
 			site.addLink(newSite, matcher.group(2));
 			newSite.addReferer(site,  matcher.group(2));
 		}
-		
-		//delete Content
-		site.clearContent();
 	}
 	
 	//make all URLs to absolute URLs

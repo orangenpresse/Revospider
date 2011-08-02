@@ -1,20 +1,30 @@
 package revo.spider;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.Vector;
 
 
-public class Website {
-	private String ref = null;
-	private String url;
-	private String content;
-	private int statusCode;
-	private boolean external;
+public class Website extends Content {
 	private HashMap<Website, String[]> referer = new HashMap<Website, String[]>();
 	private HashMap<Website, String[]> links = new HashMap<Website, String[]>();
+	private Vector<Stylesheet> stylesheets = new Vector<Stylesheet>();
+	private Vector<Image> images = new Vector<Image>();
+	private Vector<Script> scripts = new Vector<Script>();
 	
 	Website(String url) {
-		this.url = url;
-		statusCode = 0;
+		super(url);
+	}
+	
+	public Vector<Stylesheet> getStylesheets() {
+		return this.stylesheets;
+	}
+	
+	public Vector<Image> getImages() {
+		return this.images;
+	}
+	
+	public Vector<Script> getScripts() {
+		return this.scripts;
 	}
 	
 	public Set<Website> getReferer() {
@@ -48,43 +58,5 @@ public class Website {
 		linkTexts[linkTexts.length-1] = linkText;
 		map.put(site, linkTexts);
 	}
-	
-	public void clearContent() {
-		this.content = "";
-	}
-	public String getRef() {
-		if(ref == null)
-			return url;
-		else
-			return ref;
-	}
-	public void setRef(String ref) {
-		this.ref = ref;
-	}
-	public String getUrl() {
-		return url;
-	}
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	public int getStatusCode() {
-		return statusCode;
-	}
-	public void setStatusCode(int statusCode) {
-		this.statusCode = statusCode;
-	}
-	public String getContent() {
-		return content;
-	}
-	public void setContent(String content) {
-		this.content = content;
-	}
-	public boolean isExternal() {
-		return external;
-	}
-	public void setExternal(boolean external) {
-		this.external = external;
-	}
-	
 	
 }
