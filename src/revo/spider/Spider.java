@@ -57,7 +57,7 @@ public class Spider extends Thread {
 		this.base = baseUrl;
 		this.output = output;
 	}
-	
+
 	public void run() {
 		//create inital website
 		Website w = new Website(this.base);
@@ -81,7 +81,6 @@ public class Spider extends Thread {
 				e.printStackTrace();
 			}
 		}
-		
 		
 		this.output.write("--------------====((( scan done )))====--------------");
 		
@@ -114,8 +113,7 @@ public class Spider extends Thread {
 	
 	public void websiteScanned(Website site) {
 		this.sitesScanned++;
-		
-		this.output.write("found: " + this.sitesFound + " scanned: " + this.sitesScanned +  " tiefe: " + this.depth  + " url: " + site.getUrl() + " status: " + site.getStatusCode());
+		//this.output.write("found: " + this.sitesFound + " scanned: " + this.sitesScanned +  " tiefe: " + this.depth  + " url: " + site.getUrl() + " status: " + site.getStatusCode());
 
 	}
 	
@@ -123,28 +121,143 @@ public class Spider extends Thread {
 	public void parseWebsite(Website site) {
 		
 		this.findLinks(site);
-		this.findCSSFiles(site);
-		this.findJavascript(site);
+		this.findStylesheets(site);
+		this.findScripts(site);
 		this.findImages(site);
 		
 		//delete Content
 		if(this.DELETE_CONTENT)
 			site.clearContent();
 	}
-	
-	private void findCSSFiles(Website site) {
-		
-	}
-	
-	private void findJavascript(Website site) {
-		
-	}
+
 	
 	private void findImages(Website site) {
-		
+		//TODO‚ alt tags einfügen
+		//find Images in Website
+	    Pattern pattern = Pattern.compile( "<img [^>]*?src=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)/>" ); 
+		Matcher matcher = pattern.matcher( site.getContent()  ); 
+		while ( matcher.find() ) {
+			String url = parseUrl(matcher.group(1), site.getRef());
+
+			//no # loops
+			if(url.matches(".*#.*#.*"))
+				return;
+			
+			//avoid parameter loops
+			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
+			Matcher loopMatcher = loopPattern.matcher( url );
+			if(loopMatcher.find()) {
+				break;
+			}
+			
+			Image image;
+			
+			//create new site
+			image = new Image(url);
+			
+			//check whether site is external
+			if(!image.getUrl().matches(this.base+".*")) {
+				image.setExternal(true);
+			}
+			
+			//check if there is a base href
+			Pattern basePattern = Pattern.compile( "<base [^>]*?href=\"((?!mailto|#|skype).*?)\".*?/>" ); 
+			Matcher baseMatcher = basePattern.matcher( site.getContent()  ); 
+			if(baseMatcher.find())
+				image.setRef(baseMatcher.group(1));
+			else
+				image.setRef(url);
+			
+			site.addImage(image);
+		}
+	}
+	
+	private void findStylesheets(Website site) {
+		//TODO, Import Stylesheets suchen
+		//TODO, url() suchen umschreiben‚
+		//find Stylesheets in Website
+	    Pattern pattern = Pattern.compile( "<link [^>]*?href=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)/>" ); 
+		Matcher matcher = pattern.matcher( site.getContent()  ); 
+		while ( matcher.find() ) {
+			String url = parseUrl(matcher.group(1), site.getRef());
+
+			//no # loops
+			if(url.matches(".*#.*#.*"))
+				return;
+			
+			//avoid parameter loops
+			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
+			Matcher loopMatcher = loopPattern.matcher( url );
+			if(loopMatcher.find()) {
+				break;
+			}
+			
+			Stylesheet style;
+			
+	
+			//create new site
+			style = new Stylesheet(url);
+			
+			//check whether site is external
+			if(!style.getUrl().matches(this.base+".*")) {
+				style.setExternal(true);
+			}
+			
+			//check if there is a base href
+			Pattern basePattern = Pattern.compile( "<base [^>]*?href=\"((?!mailto|#|skype).*?)\".*?/>" ); 
+			Matcher baseMatcher = basePattern.matcher( site.getContent()  ); 
+			if(baseMatcher.find())
+				style.setRef(baseMatcher.group(1));
+			else
+				style.setRef(url);
+			
+			site.addStylesheet(style);
+		}
+	}
+	
+	private void findScripts(Website site) {
+		//find Scripts in Website
+	    Pattern pattern = Pattern.compile( "<script [^>]*?src=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)</script>" ); 
+		Matcher matcher = pattern.matcher( site.getContent()  ); 
+		while ( matcher.find() ) {
+			String url = parseUrl(matcher.group(1), site.getRef());
+
+			//no # loops
+			if(url.matches(".*#.*#.*"))
+				return;
+			
+			//avoid parameter loops
+			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
+			Matcher loopMatcher = loopPattern.matcher( url );
+			if(loopMatcher.find()) {
+				break;
+			}
+			
+			Script script;
+			
+			//create new script
+			script = new Script(url);
+			
+			//check whether site is external
+			if(!script.getUrl().matches(this.base+".*")) {
+				script.setExternal(true);
+			}
+			
+			//check if there is a base href
+			Pattern basePattern = Pattern.compile( "<base [^>]*?href=\"((?!mailto|#|skype).*?)\".*?/>" ); 
+			Matcher baseMatcher = basePattern.matcher( site.getContent()  ); 
+			if(baseMatcher.find())
+				script.setRef(baseMatcher.group(1));
+			else
+				script.setRef(url);
+			
+			site.addScript(script);
+		}
+
 	}
 	
 	private void findLinks(Website site) {
+		//TODO Rewrite und speichern implementiern
 		//find Links in Website
 	    Pattern pattern = Pattern.compile( "<a [^>]*?href=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)</a>" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 

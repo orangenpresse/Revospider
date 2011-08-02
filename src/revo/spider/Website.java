@@ -15,6 +15,18 @@ public class Website extends Content {
 		super(url);
 	}
 	
+	public void addImage(Image image) {
+		images.add(image);
+	}
+	
+	public void addStylesheet(Stylesheet stylesheet) {
+		stylesheets.add(stylesheet);
+	}
+
+	public void addScript(Script script) {
+		scripts.add(script);
+	}
+	
 	public Vector<Stylesheet> getStylesheets() {
 		return this.stylesheets;
 	}
