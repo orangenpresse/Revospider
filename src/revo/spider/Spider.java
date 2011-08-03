@@ -14,7 +14,7 @@ import revo.gui.Linkchecker;
 
 
 public class Spider extends Thread {
-	public  final int MAX_FILESIZE = 100000;
+	public final int MAX_FILESIZE = 100000;
 	public final long MAX_DEPTH = 10;
 	public final int MAX_WAITTIME = 60;
 	public final boolean DELETE_CONTENT = false;
@@ -25,7 +25,9 @@ public class Spider extends Thread {
 	private int sitesScanned = 0;
 	private ConcurrentHashMap<String, Website> sites = new ConcurrentHashMap<String, Website>();
 	private ConcurrentHashMap<String, Website> sitesDone = new ConcurrentHashMap<String, Website>();
-
+	private Filesaver filesaver = new Filesaver("/Users/Benedict/Test");
+	
+	
 	//Parallel running Threads(Executor) on System
     int corePoolSize = 30;
     //Maximum Threads allowed in Pool
@@ -113,7 +115,7 @@ public class Spider extends Thread {
 	
 	public void websiteScanned(Website site) {
 		this.sitesScanned++;
-		//this.output.write("found: " + this.sitesFound + " scanned: " + this.sitesScanned +  " tiefe: " + this.depth  + " url: " + site.getUrl() + " status: " + site.getStatusCode());
+		this.output.write("found: " + this.sitesFound + " scanned: " + this.sitesScanned +  " tiefe: " + this.depth  + " url: " + site.getUrl() + " status: " + site.getStatusCode());
 
 	}
 	
@@ -125,11 +127,18 @@ public class Spider extends Thread {
 		this.findScripts(site);
 		this.findImages(site);
 		
+		this.saveSite(site);
+		
 		//delete Content
 		if(this.DELETE_CONTENT)
 			site.clearContent();
 	}
 
+	
+	private void saveSite(Website site) {
+		String filename = site.getUrl().replaceAll(base, "").replaceAll("#.*$", "");
+		filesaver.saveFile(filename, site.getContent());
+	}
 	
 	private void findImages(Website site) {
 		//TODO‚ alt tags einfügen
@@ -258,9 +267,13 @@ public class Spider extends Thread {
 	
 	private void findLinks(Website site) {
 		//TODO Rewrite und speichern implementiern
+		StringBuffer result = new StringBuffer();
+		//result.append(site.getContent());
 		//find Links in Website
 	    Pattern pattern = Pattern.compile( "<a [^>]*?href=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)</a>" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
+		
+		boolean meep = false;
 		while ( matcher.find() ) {
 			String url = parseUrl(matcher.group(1), site.getRef());
 
@@ -274,6 +287,18 @@ public class Spider extends Thread {
 			if(loopMatcher.find()) {
 				break;
 			}
+			
+			//Pattern hrefpattern = Pattern.compile("href=\".*?\"");
+			//Matcher hrefmatcher = hrefpattern.matcher(matcher.group());
+			//if( hrefmatcher.find() ) {
+				//hrefmatcher.appendReplacement(sb, replacement)
+			//}
+			
+			//replace href
+			matcher.appendReplacement(result, "<a href=\"meep\">test</a>");
+			meep = true;
+			//result.replace(matcher.start(1)+1, matcher.end(1)-1, url.toUpperCase());
+			
 			
 			Website newSite;
 			
@@ -302,11 +327,15 @@ public class Spider extends Thread {
 				//add site to map for scanning
 				this.sitesFound++;
 				this.sites.put(url, newSite);
+				
 			}
 			
 			//build graph
 			site.addLink(newSite, matcher.group(2));
 			newSite.addReferer(site,  matcher.group(2));
+			if(meep)
+			matcher.appendTail(result);
+			site.setContent(result.toString());
 		}
 	}
 	
