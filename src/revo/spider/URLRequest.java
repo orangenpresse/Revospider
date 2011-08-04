@@ -11,7 +11,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 public class URLRequest {
-	private Website site;
+	private Content site;
 	
 	public void execute(int maxFileSize) throws URLRequestException {
 		try {
@@ -33,11 +33,12 @@ public class URLRequest {
 			
 			response = httpclient.execute(httpget);
 			entity = response.getEntity();
-			
+
 			this.site.setStatusCode(response.getStatusLine().getStatusCode());
 			
 			if(entity != null && contentLength < maxFileSize) {
 				this.site.setContent(EntityUtils.toString(entity));	
+				this.site.setMimeType(entity.getContentType().getValue());
 			}
 			else {
 				this.site.setContent("");
@@ -48,11 +49,11 @@ public class URLRequest {
 		}
 	}
 
-	URLRequest(Website website) {
+	URLRequest(Content website) {
 		this.site = website;
 	}
 	
-	public Website getSite() {
+	public Content getSite() {
 		return this.site;
 	}
 }

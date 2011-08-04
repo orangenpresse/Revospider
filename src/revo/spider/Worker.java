@@ -1,10 +1,10 @@
 package revo.spider;
 
 public class Worker extends Thread {
-	private Website site;
+	private Content site;
 	Spider spider;
 	
-	Worker(Website site, Spider spider) {
+	Worker(Content site, Spider spider) {
 		this.site = site;
 		this.spider = spider;
 	}

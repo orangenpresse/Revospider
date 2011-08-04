@@ -15,6 +15,7 @@ public class Filesaver {
 	public void saveFile(String filename, String data) {
 		try {
 			if(filename.equals(""))
+				//TODO Einstellbarer Wert
 				filename = "index.html";
 			
 			String path = folder;
@@ -25,6 +26,9 @@ public class Filesaver {
 				
 				if(!file.exists() && dirs[dirs.length-1] != dir)
 					file.mkdir();
+
+				if(dirs[dirs.length-1] == dir && file.isDirectory())
+					path += "/" + "index.html";
 			}
 
 			File file = new File(path);

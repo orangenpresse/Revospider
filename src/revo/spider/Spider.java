@@ -23,8 +23,8 @@ public class Spider extends Thread {
 	private String base;
 	private int sitesFound = 1;
 	private int sitesScanned = 0;
-	private ConcurrentHashMap<String, Website> sites = new ConcurrentHashMap<String, Website>();
-	private ConcurrentHashMap<String, Website> sitesDone = new ConcurrentHashMap<String, Website>();
+	private ConcurrentHashMap<String, Content> sites = new ConcurrentHashMap<String, Content>();
+	private ConcurrentHashMap<String, Content> sitesDone = new ConcurrentHashMap<String, Content>();
 	private Filesaver filesaver = new Filesaver("/Users/Benedict/Test");
 	
 	
@@ -97,14 +97,14 @@ public class Spider extends Thread {
 	
 	private void scanNextSites() {		
 		for(String url : sites.keySet()) {
-			Website site = sites.get(url);
+			Content site = sites.get(url);
 			sites.remove(url);
 			sitesDone.put(url, site);
 			startThread(site);
 		}		
 	}
 	
-	private void startThread(Website site) {		
+	private void startThread(Content site) {		
 		Worker w = new Worker(site, this);
 		startThread(w);
 	}
@@ -113,19 +113,21 @@ public class Spider extends Thread {
 		threadPool.execute(object);
 	}
 	
-	public void websiteScanned(Website site) {
+	public void websiteScanned(Content site) {
 		this.sitesScanned++;
 		this.output.write("found: " + this.sitesFound + " scanned: " + this.sitesScanned +  " tiefe: " + this.depth  + " url: " + site.getUrl() + " status: " + site.getStatusCode());
 
 	}
 	
 	//find Links in Website
-	public void parseWebsite(Website site) {
-		
-		this.findLinks(site);
-		this.findStylesheets(site);
-		this.findScripts(site);
-		this.findImages(site);
+	public void parseWebsite(Content site) {
+		if(site instanceof Website) {
+			Website website = (Website) site;
+			this.findLinks(website);
+			this.findStylesheets(website);
+			this.findScripts(website);
+			this.findImages(website);
+		}
 		
 		this.saveSite(site);
 		
@@ -135,15 +137,15 @@ public class Spider extends Thread {
 	}
 
 	
-	private void saveSite(Website site) {
+	private void saveSite(Content site) {
 		String filename = site.getUrl().replaceAll(base, "").replaceAll("#.*$", "");
-		filesaver.saveFile(filename, site.getContent());
+		filesaver.saveFile(filename, this.rewriteBase(site.getContent()));
 	}
 	
 	private void findImages(Website site) {
 		//TODO‚ alt tags einfügen
 		//find Images in Website
-	    Pattern pattern = Pattern.compile( "<img [^>]*?src=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)/>" ); 
+	    Pattern pattern = Pattern.compile( "<img [^>]*?src=\"(.*?)\".*?(.*?)/>" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
 		while ( matcher.find() ) {
 			String url = parseUrl(matcher.group(1), site.getRef());
@@ -158,26 +160,25 @@ public class Spider extends Thread {
 			if(loopMatcher.find()) {
 				break;
 			}
+					
+			//TODO add Image to site
 			
-			Image image;
-			
-			//create new site
-			image = new Image(url);
-			
-			//check whether site is external
-			if(!image.getUrl().matches(this.base+".*")) {
-				image.setExternal(true);
+			//Site already in a map?
+			if(!this.sites.containsKey(url) && !this.sitesDone.containsKey(url)) {
+				Image image;
+				
+				//create new style
+				image = new Image(url);
+				
+				//check whether site is external
+				if(!image.getUrl().matches(this.base+".*")) {
+					image.setExternal(true);
+				}
+				
+				//add site to map for scanning
+				this.sitesFound++;
+				this.sites.put(url, image);
 			}
-			
-			//check if there is a base href
-			Pattern basePattern = Pattern.compile( "<base [^>]*?href=\"((?!mailto|#|skype).*?)\".*?/>" ); 
-			Matcher baseMatcher = basePattern.matcher( site.getContent()  ); 
-			if(baseMatcher.find())
-				image.setRef(baseMatcher.group(1));
-			else
-				image.setRef(url);
-			
-			site.addImage(image);
 		}
 	}
 	
@@ -185,7 +186,7 @@ public class Spider extends Thread {
 		//TODO, Import Stylesheets suchen
 		//TODO, url() suchen umschreiben‚
 		//find Stylesheets in Website
-	    Pattern pattern = Pattern.compile( "<link [^>]*?href=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)/>" ); 
+	    Pattern pattern = Pattern.compile( "<link [^>]*?href=\"(.*?)\".*?(.*?)/>" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
 		while ( matcher.find() ) {
 			String url = parseUrl(matcher.group(1), site.getRef());
@@ -201,32 +202,31 @@ public class Spider extends Thread {
 				break;
 			}
 			
-			Stylesheet style;
+			//TODO add Stylesheet to site
 			
-	
-			//create new site
-			style = new Stylesheet(url);
-			
-			//check whether site is external
-			if(!style.getUrl().matches(this.base+".*")) {
-				style.setExternal(true);
+			//Site already in a map?
+			if(!this.sites.containsKey(url) && !this.sitesDone.containsKey(url)) {
+				Stylesheet style;
+				
+				//create new style
+				style = new Stylesheet(url);
+				
+				//check whether site is external
+				if(!style.getUrl().matches(this.base+".*")) {
+					style.setExternal(true);
+				}
+				
+				//add site to map for scanning
+				this.sitesFound++;
+				this.sites.put(url, style);
+				
 			}
-			
-			//check if there is a base href
-			Pattern basePattern = Pattern.compile( "<base [^>]*?href=\"((?!mailto|#|skype).*?)\".*?/>" ); 
-			Matcher baseMatcher = basePattern.matcher( site.getContent()  ); 
-			if(baseMatcher.find())
-				style.setRef(baseMatcher.group(1));
-			else
-				style.setRef(url);
-			
-			site.addStylesheet(style);
 		}
 	}
 	
 	private void findScripts(Website site) {
 		//find Scripts in Website
-	    Pattern pattern = Pattern.compile( "<script [^>]*?src=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)</script>" ); 
+	    Pattern pattern = Pattern.compile( "<script [^>]*?src=\"(.*?)\".*?>(.*?)</script>" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
 		while ( matcher.find() ) {
 			String url = parseUrl(matcher.group(1), site.getRef());
@@ -242,40 +242,38 @@ public class Spider extends Thread {
 				break;
 			}
 			
-			Script script;
+			//TODO add Script to site
 			
-			//create new script
-			script = new Script(url);
-			
-			//check whether site is external
-			if(!script.getUrl().matches(this.base+".*")) {
-				script.setExternal(true);
+			//Site already in a map?
+			if(!this.sites.containsKey(url) && !this.sitesDone.containsKey(url)) {
+				Script script;
+				
+				//create new style
+				script = new Script(url);
+				
+				//check whether site is external
+				if(!script.getUrl().matches(this.base+".*")) {
+					script.setExternal(true);
+				}
+				
+				//add site to map for scanning
+				this.sitesFound++;
+				this.sites.put(url, script);
+				
 			}
-			
-			//check if there is a base href
-			Pattern basePattern = Pattern.compile( "<base [^>]*?href=\"((?!mailto|#|skype).*?)\".*?/>" ); 
-			Matcher baseMatcher = basePattern.matcher( site.getContent()  ); 
-			if(baseMatcher.find())
-				script.setRef(baseMatcher.group(1));
-			else
-				script.setRef(url);
-			
-			site.addScript(script);
 		}
 
 	}
 	
 	private void findLinks(Website site) {
-		//TODO Rewrite und speichern implementiern
 		StringBuffer result = new StringBuffer();
 		//result.append(site.getContent());
 		//find Links in Website
-	    Pattern pattern = Pattern.compile( "<a [^>]*?href=\"((?!mailto|#|skype|javascript).*?)\".*?>(.*?)</a>" ); 
+	    Pattern pattern = Pattern.compile( "(<a [^>]*?href=\")((?!mailto|#|skype|javascript).*?)(\".*?>)(.*?)(</a>)" ); 
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
-		
-		boolean meep = false;
+
 		while ( matcher.find() ) {
-			String url = parseUrl(matcher.group(1), site.getRef());
+			String url = parseUrl(matcher.group(2), site.getRef());
 
 			//no # loops
 			if(url.matches(".*#.*#.*"))
@@ -288,25 +286,20 @@ public class Spider extends Thread {
 				break;
 			}
 			
-			//Pattern hrefpattern = Pattern.compile("href=\".*?\"");
-			//Matcher hrefmatcher = hrefpattern.matcher(matcher.group());
-			//if( hrefmatcher.find() ) {
-				//hrefmatcher.appendReplacement(sb, replacement)
-			//}
-			
-			//replace href
-			matcher.appendReplacement(result, "<a href=\"meep\">test</a>");
-			meep = true;
-			//result.replace(matcher.start(1)+1, matcher.end(1)-1, url.toUpperCase());
+			//replace href to base relative version
+			String newHref = url.replaceAll(base, "");
+
+			String replacement = matcher.group(1) + newHref + matcher.group(3) + matcher.group(4) + matcher.group(5);
+			matcher.appendReplacement(result, replacement);
 			
 			
 			Website newSite;
 			
 			//Site already in a map?
 			if(this.sites.containsKey(url))
-				newSite = this.sites.get(url);
+				newSite = (Website) this.sites.get(url);
 			else if(this.sitesDone.containsKey(url))
-				newSite = this.sitesDone.get(url);
+				newSite = (Website) this.sitesDone.get(url);
 			else {
 				//create new site
 				newSite = new Website(url);
@@ -331,12 +324,18 @@ public class Spider extends Thread {
 			}
 			
 			//build graph
-			site.addLink(newSite, matcher.group(2));
-			newSite.addReferer(site,  matcher.group(2));
-			if(meep)
-			matcher.appendTail(result);
+			site.addLink(newSite, matcher.group(4));
+			newSite.addReferer(site,  matcher.group(4));
+
+			//TODO append Tail bug
+			//matcher.appendTail(result);
 			site.setContent(result.toString());
 		}
+	}
+	
+	private String rewriteBase(String content) {
+		//TODO in config
+		return content.replaceAll("<base [^>]*?href=\"(.*?)\".*?/>", "<base href=\"file:///Users/Benedict/Test/\" />");
 	}
 	
 	//make all URLs to absolute URLs
