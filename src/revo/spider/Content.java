@@ -5,6 +5,7 @@ public abstract class Content {
 	private String url;
 	private String content;
 	private String mimeType;
+	private byte[] data;
 	private int statusCode;
 	private boolean external;
 	
@@ -14,7 +15,8 @@ public abstract class Content {
 	}
 	
 	public void clearContent() {
-		this.content = "";
+		this.content = null;
+		this.data = null;
 	}
 	public String getRef() {
 		if(ref == null)
@@ -23,14 +25,18 @@ public abstract class Content {
 			return ref;
 	}
 	
+	public byte[] getData() {
+		return data;
+	}
+	public void setData(byte[] data) {
+		this.data = data;
+	}
 	public String getMimeType() {
 		return mimeType;
 	}
-
 	public void setMimeType(String mimeType) {
 		this.mimeType = mimeType;
 	}
-
 	public void setRef(String ref) {
 		this.ref = ref;
 	}

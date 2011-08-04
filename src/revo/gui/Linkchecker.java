@@ -31,7 +31,7 @@ public class Linkchecker extends JFrame implements Output {
 		this.add(north,BorderLayout.NORTH);
 		
 		urlfield = new JTextField();
-		urlfield.setText("http://www.dcn.de/");
+		urlfield.setText("");
 		north.add(urlfield);
 		
 		JButton button = new JButton();

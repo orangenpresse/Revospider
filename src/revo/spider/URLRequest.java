@@ -37,10 +37,16 @@ public class URLRequest {
 			this.site.setStatusCode(response.getStatusLine().getStatusCode());
 			
 			if(entity != null && contentLength < maxFileSize) {
-				this.site.setContent(EntityUtils.toString(entity));	
-				this.site.setMimeType(entity.getContentType().getValue());
+				this.site.setMimeType(EntityUtils.getContentMimeType(entity));
+				if(this.site.getMimeType().matches("image/jpeg|image/png|null")) {
+					this.site.setData(EntityUtils.toByteArray(entity));
+				}
+				else {
+					this.site.setContent(EntityUtils.toString(entity,"UFT-8"));
+				}
 			}
 			else {
+				System.out.println("FAIL:" + site.getUrl());
 				this.site.setContent("");
 			}
 		}

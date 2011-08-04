@@ -14,7 +14,7 @@ public class Worker extends Thread {
 			//scan the website
 			new URLRequest(this.site).execute(spider.MAX_FILESIZE);
 			
-			//only follow interlan websites
+			//only follow internal websites
 			if(!this.site.isExternal())
 				spider.parseWebsite(site);
 			
@@ -22,7 +22,7 @@ public class Worker extends Thread {
 			spider.websiteScanned(this.site);
 		} catch (URLRequestException e) {
 			//e.printStackTrace();
-			//set the website scanned ***Should be changed here***
+			//TODO set the website scanned ***Should be changed here***
 			spider.websiteScanned(this.site);
 		}
 	}

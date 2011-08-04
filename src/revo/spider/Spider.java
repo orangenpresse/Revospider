@@ -14,8 +14,8 @@ import revo.gui.Linkchecker;
 
 
 public class Spider extends Thread {
-	public final int MAX_FILESIZE = 100000;
-	public final long MAX_DEPTH = 10;
+	public final int MAX_FILESIZE = 1000000;
+	public final long MAX_DEPTH = 2;
 	public final int MAX_WAITTIME = 60;
 	public final boolean DELETE_CONTENT = false;
 	private int depth = 0;
@@ -91,6 +91,7 @@ public class Spider extends Thread {
 			this.output.write(url + " => " + sitesDone.get(url).getStatusCode());
 		}
 		*/
+		
 		this.output.write("sites scanned: " + new Integer(sitesDone.size()).toString());
 		
 	}
@@ -121,7 +122,7 @@ public class Spider extends Thread {
 	
 	//find Links in Website
 	public void parseWebsite(Content site) {
-		if(site instanceof Website) {
+		if(site instanceof Website && site.getContent() != null) {
 			Website website = (Website) site;
 			this.findLinks(website);
 			this.findStylesheets(website);
@@ -139,7 +140,12 @@ public class Spider extends Thread {
 	
 	private void saveSite(Content site) {
 		String filename = site.getUrl().replaceAll(base, "").replaceAll("#.*$", "");
-		filesaver.saveFile(filename, this.rewriteBase(site.getContent()));
+		
+		if(site.getData() != null)
+			filesaver.saveFile(filename, site.getData());
+		else if(site.getContent() != null) {
+			filesaver.saveFile(filename, this.rewriteBase(site.getContent()));
+		}
 	}
 	
 	private void findImages(Website site) {
@@ -155,13 +161,15 @@ public class Spider extends Thread {
 				return;
 			
 			//avoid parameter loops
+			/*
 			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
 			Matcher loopMatcher = loopPattern.matcher( url );
 			if(loopMatcher.find()) {
 				break;
 			}
+			*/
 					
-			//TODO add Image to site
+			//TODO add Image to Site 
 			
 			//Site already in a map?
 			if(!this.sites.containsKey(url) && !this.sitesDone.containsKey(url)) {
@@ -190,17 +198,19 @@ public class Spider extends Thread {
 		Matcher matcher = pattern.matcher( site.getContent()  ); 
 		while ( matcher.find() ) {
 			String url = parseUrl(matcher.group(1), site.getRef());
-
+			System.out.println(url);
 			//no # loops
 			if(url.matches(".*#.*#.*"))
 				return;
 			
+			/*
 			//avoid parameter loops
 			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
 			Matcher loopMatcher = loopPattern.matcher( url );
 			if(loopMatcher.find()) {
 				break;
 			}
+			*/
 			
 			//TODO add Stylesheet to site
 			
@@ -219,7 +229,6 @@ public class Spider extends Thread {
 				//add site to map for scanning
 				this.sitesFound++;
 				this.sites.put(url, style);
-				
 			}
 		}
 	}
@@ -235,12 +244,14 @@ public class Spider extends Thread {
 			if(url.matches(".*#.*#.*"))
 				return;
 			
+			/*
 			//avoid parameter loops
 			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
 			Matcher loopMatcher = loopPattern.matcher( url );
 			if(loopMatcher.find()) {
 				break;
 			}
+			*/
 			
 			//TODO add Script to site
 			
@@ -259,7 +270,6 @@ public class Spider extends Thread {
 				//add site to map for scanning
 				this.sitesFound++;
 				this.sites.put(url, script);
-				
 			}
 		}
 
@@ -280,11 +290,13 @@ public class Spider extends Thread {
 				return;
 			
 			//avoid parameter loops
+			/*
 			Pattern loopPattern = Pattern.compile("(&.{2,}=){2,}");
 			Matcher loopMatcher = loopPattern.matcher( url );
 			if(loopMatcher.find()) {
 				break;
 			}
+			*/
 			
 			//replace href to base relative version
 			String newHref = url.replaceAll(base, "");
