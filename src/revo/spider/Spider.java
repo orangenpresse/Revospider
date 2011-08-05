@@ -139,9 +139,10 @@ public class Spider extends Thread {
 			this.findStylesheets(website);
 			this.findScripts(website);
 			this.findImages(website);
+			this.findCssImages(site);
 		}
 		else if(site instanceof Stylesheet && site.getContent() != null) {
-			this.findImages((Stylesheet)site);
+			this.findCssImages(site);
 			this.findStylesheets((Stylesheet)site);
 		}
 
@@ -193,14 +194,14 @@ public class Spider extends Thread {
 			return content;
 	}
 	
-	private void findImages(Stylesheet style) {
-		Pattern pattern = Pattern.compile( "background:.*?url\\((.*?)\\)" ); 
-		Matcher matcher = pattern.matcher( style.getContent()  ); 
+	private void findCssImages(Content content) {
+		Pattern pattern = Pattern.compile( "background.*?url\\((.*?)\\)" ); 
+		Matcher matcher = pattern.matcher( content.getContent()  ); 
 		while ( matcher.find() ) {
-			String url = parseUrl(matcher.group(1), style.getUrl());
+			String url = parseUrl(matcher.group(1), content.getUrl());
 			//TODO add Image to Site 
 			
-			addContent(style, new Image(url));
+			addContent(content, new Image(url));
 		}
 	}
 	
