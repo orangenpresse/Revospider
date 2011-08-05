@@ -12,7 +12,7 @@ public class Worker extends Thread {
 	public void run() {
 		try {
 			//scan the website
-			new URLRequest(this.site).execute(spider.MAX_FILESIZE);
+			new URLRequest(this.site).execute(spider.getMaxFilesize());
 			
 			//only follow internal websites
 			if(!this.site.isExternal())

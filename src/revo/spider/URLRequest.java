@@ -35,14 +35,16 @@ public class URLRequest {
 			entity = response.getEntity();
 
 			this.site.setStatusCode(response.getStatusLine().getStatusCode());
-			
-			if(entity != null && contentLength < maxFileSize) {
+			if(entity != null && contentLength < maxFileSize) {				
 				this.site.setMimeType(EntityUtils.getContentMimeType(entity));
-				if(this.site.getMimeType().matches("image/jpeg|image/png|null")) {
+
+				//if(this.site.getMimeType().matches("image/jpeg|image/png|image/gif|text/plain|application/pdf|application/msword|null")) {
+				if(!this.site.getMimeType().matches("text/html|application/x-javascript|text/css|text/xml")) {
 					this.site.setData(EntityUtils.toByteArray(entity));
 				}
 				else {
-					this.site.setContent(EntityUtils.toString(entity,"UFT-8"));
+					//this.site.setContent(EntityUtils.toString(entity,"UFT-8"));
+					this.site.setContent(EntityUtils.toString(entity));
 				}
 			}
 			else {

@@ -10,7 +10,7 @@ public class Website extends Content {
 	private Vector<Stylesheet> stylesheets = new Vector<Stylesheet>();
 	private Vector<Image> images = new Vector<Image>();
 	private Vector<Script> scripts = new Vector<Script>();
-	
+
 	Website(String url) {
 		super(url);
 	}
@@ -70,5 +70,5 @@ public class Website extends Content {
 		linkTexts[linkTexts.length-1] = linkText;
 		map.put(site, linkTexts);
 	}
-	
+
 }

@@ -7,9 +7,17 @@ import java.io.OutputStreamWriter;
 
 public class Filesaver {
 	private String folder;
+	private String standartName;
 	
 	public Filesaver(String folder) {
 		this.folder = folder;
+		this.standartName = "index.html";
+	}
+	
+	public Filesaver(String folder, String standartName) {
+		this.folder = folder;
+		this.standartName = "index.html";
+		this.standartName = standartName;
 	}
 	
 	public void saveFile(String filename, String data) {
@@ -42,8 +50,7 @@ public class Filesaver {
 	
 	private String createFolders(String filename) {
 		if(filename.equals(""))
-			//TODO Einstellbarer Wert
-			filename = "index.html";
+			filename = this.standartName;
 		
 		String path = folder;
 		String[] dirs = filename.split("/");
@@ -55,10 +62,11 @@ public class Filesaver {
 				file.mkdir();
 
 			if(dirs[dirs.length-1] == dir && file.isDirectory())
-				path += "/" + "index.html";
+				path += "/" + this.standartName;
 		}
 		
-		return path;
+		//replace all ? parametes in filename
+		return path.replaceAll("\\?.*","");
 	}
 	
 }
