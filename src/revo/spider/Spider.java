@@ -113,6 +113,12 @@ public class Spider extends Thread {
 		
 	}
 	
+	public void addCustomContent(String url) {
+		Website w = new Website(url);
+		this.sites.put(w.getUrl(), w);
+		this.sitesFound++;
+	}
+	
 	private void scanNextSites() {		
 		for(String url : sites.keySet()) {
 			Content site = sites.get(url);
@@ -161,7 +167,8 @@ public class Spider extends Thread {
 
 	
 	private void saveSite(Content site) {
-		String filename = site.getUrl().replaceAll(base, "").replaceAll("#.*$", "");
+		//String filename = site.getUrl().replaceAll(base, "").replaceAll("#.*$", "");
+		String filename = site.getNewUrl().replaceAll(base, "").replaceAll("#.*$", "");
 		
 		if(site.getData() != null)
 			filesaver.saveFile(filename, site.getData());
@@ -303,6 +310,9 @@ public class Spider extends Thread {
 			//replace href to base relative version
 			String newHref = url.replaceAll(base, "");
 
+			//parse parameters to a hash and replace them
+			newHref = hashParameters(newHref);
+
 			String replacement = matcher.group(1) + newHref + matcher.group(3) + matcher.group(4) + matcher.group(5);
 			matcher.appendReplacement(result, replacement);
 			
@@ -318,6 +328,9 @@ public class Spider extends Thread {
 				newSite = (Website) addContent(site, new Website(url));
 			}
 			
+			//set the replaced url for the site
+			newSite.setNewUrl(newHref);
+			
 			//build graph
 			site.addLink(newSite, matcher.group(4));
 			newSite.addReferer(site,  matcher.group(4));
@@ -326,6 +339,18 @@ public class Spider extends Thread {
 
 		matcher.appendTail(result);
 		site.setContent(result.toString());
+	}
+	
+	private String hashParameters(String url) {
+		String fileExt = "";
+		
+		Pattern fileExtPat = Pattern.compile("\\.(.*)\\?.*$");
+		Matcher matcher = fileExtPat.matcher( url );
+		if(matcher.find())
+			fileExt = "." + matcher.group(1);
+		
+		String parameters = url.replaceAll(".*\\?","");
+		return url.replaceAll("\\..*\\?.*$", Integer.toString(parameters.hashCode()) + fileExt);
 	}
 	
 	private String rewriteBase(String content) {

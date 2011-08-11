@@ -3,6 +3,7 @@ package revo.spider;
 public abstract class Content {
 	private String ref = null;
 	private String url;
+	private String newUrl;
 	private String content;
 	private String mimeType;
 	private byte[] data;
@@ -68,6 +69,14 @@ public abstract class Content {
 	public void setExternal(boolean external) {
 		this.external = external;
 	}
-	
+	public String getNewUrl() {
+		if (this.newUrl == null)
+			return this.url;
+		else
+			return newUrl;
+	}
+	public void setNewUrl(String newUrl) {
+		this.newUrl = newUrl;
+	}
 	
 }
