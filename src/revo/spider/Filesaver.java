@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 public class Filesaver {
-	private String folder;
-	private String standartName;
+	protected String folder;
+	protected String standartName;
 	
 	public Filesaver(String folder) {
 		this.folder = folder;

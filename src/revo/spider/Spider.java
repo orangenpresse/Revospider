@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.StringEscapeUtils;
 
-public class Spider extends Thread {
+public class Spider extends Thread {		
 	//config parameters
 	
 	//max Filesize which will be downloaded
@@ -32,6 +32,8 @@ public class Spider extends Thread {
 	//max alowed threads in pool
 	private int maxPoolSize = 30;
 	
+	//max alowed sites
+	private int maxSites = 5000;
 	
 	//internnal variables
 	private int depth = 0;
@@ -45,6 +47,9 @@ public class Spider extends Thread {
 	private String newBase;
 	private ThreadPoolExecutor threadPool = null;
 		
+	public Spider() {
+	};
+	
 	public Spider(String baseUrl) {
 		this(baseUrl, null);
 		
@@ -63,6 +68,13 @@ public class Spider extends Thread {
 		this.output = output;
 	}
 
+	public Spider(String baseUrl, File outFolder, String newBase) {
+		this(baseUrl);
+		this.base = baseUrl;
+		filesaver = new Filesaver(outFolder.toString());
+		this.newBase = newBase;
+	}
+	
 	public Spider(String baseUrl, Output output, File outFolder, String newBase) {
 		this.base = baseUrl;
 		this.output = output;
@@ -76,7 +88,7 @@ public class Spider extends Thread {
 		this.sites.put(w.getUrl(), w);
 
 		//start the scan process
-		while(this.depth <= maxDepth && this.sitesFound != this.sitesScanned) {
+		while(this.depth <= maxDepth && this.sitesFound != this.sitesScanned && this.maxSites >= this.sitesScanned) {
 			threadPool = new ThreadPoolExecutor(corePoolSize, 
 												maxPoolSize, 
 												this.maxWaitTime, 
@@ -96,13 +108,6 @@ public class Spider extends Thread {
 		}
 		
 		this.output.write("--------------====((( scan done )))====--------------");
-		
-		/*
-		for(String url : sitesDone.keySet()) {
-			this.output.write(url + " => " + sitesDone.get(url).getStatusCode());
-		}
-		*/
-		
 		
 		this.output.write("sites scanned: " + new Integer(sitesDone.size()).toString());
 		

@@ -9,9 +9,13 @@ public abstract class Content {
 	private int statusCode;
 	private boolean external;
 	
-	Content(String url) {
+	public Content() {
+		this.statusCode = 0;
+	}
+	
+	public Content(String url) {
 		this.url = url;
-		statusCode = 0;
+		this.statusCode = 0;
 	}
 	
 	public void clearContent() {
